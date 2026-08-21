@@ -1,0 +1,1 @@
+import {api} from "./api"; export const faqService={list:()=>api.get<any[]>("/faq"),create:(body:any)=>api.post("/faq",body),update:(id:number|string,body:any)=>api.put(`/faq/${id}`,body),remove:(id:number|string)=>api.delete(`/faq/${id}`)};

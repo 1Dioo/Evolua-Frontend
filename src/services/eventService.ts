@@ -1,0 +1,1 @@
+import {api} from "./api"; export const eventService={list:()=>api.get<any[]>("/eventos"),get:(id:number|string)=>api.get<any>(`/eventos/${id}`),create:(body:any)=>api.post("/eventos",body),update:(id:number|string,body:any)=>api.put(`/eventos/${id}`,body),remove:(id:number|string)=>api.delete(`/eventos/${id}`)};

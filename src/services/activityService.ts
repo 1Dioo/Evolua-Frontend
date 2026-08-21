@@ -1,0 +1,1 @@
+import {api} from "./api"; export const activityService={list:()=>api.get<any[]>("/atividades"),get:(id:number|string)=>api.get<any>(`/atividades/${id}`),create:(body:any)=>api.post("/atividades",body),update:(id:number|string,body:any)=>api.put(`/atividades/${id}`,body)};

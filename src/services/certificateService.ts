@@ -1,0 +1,1 @@
+import {api} from "./api"; export const certificateService={list:()=>api.get<any[]>("/certificados"),get:(id:number|string)=>api.get<any>(`/certificados/${id}`),validate:(id:number|string)=>api.get<any>(`/certificados/${id}/validar`)};

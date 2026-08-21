@@ -1,0 +1,1 @@
+import {api} from "./api"; export const notificationService={list:()=>api.get<any[]>("/notificacoes"),markRead:(id:number|string)=>api.put(`/notificacoes/${id}/lida`,{}),markAllRead:()=>api.put("/notificacoes/marcar-todas-lidas",{}),remove:(id:number|string)=>api.delete(`/notificacoes/${id}`)};
