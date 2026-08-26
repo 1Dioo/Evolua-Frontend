@@ -87,6 +87,7 @@ export const authSession = {
     try {
       await authService.logout();
     } finally {
+      authToken.clear();  
       setCurrentUser(null);
     }
   },

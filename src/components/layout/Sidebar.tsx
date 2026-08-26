@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, LogOut, Moon, Sun, X } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -10,16 +10,37 @@ import { useSidebarState } from "@/hooks/useSidebarState";
 import { cn } from "@/lib/utils";
 
 function SidebarBody({
-  collapsed,
-  onNavigate,
+    collapsed,
+    onNavigate,
 }: {
-  collapsed: boolean;
-  onNavigate?: () => void;
+    collapsed: boolean;
+    onNavigate?: () => void;
 }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { theme, toggleTheme } = useTheme();
-  const { unreadCount } = useNotifications();
-  const { logout } = useAuth();
+    const pathname = useRouterState({
+        select: (s) => s.location.pathname,
+    });
+
+    const { theme, toggleTheme } = useTheme();
+    const { unreadCount } = useNotifications();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+
+            toast.success("Sessão encerrada.");
+
+            await navigate({
+                to: "/login",
+                replace: true,
+            });
+        } catch (error) {
+            console.error("Erro ao sair da conta:", error);
+
+            toast.error("Não foi possível encerrar a sessão.");
+        }
+    };
 
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto overflow-x-hidden py-5">
@@ -89,20 +110,26 @@ function SidebarBody({
             <Sun className="size-[18px] shrink-0" strokeWidth={1.75} />
           ) : (
             <Moon className="size-[18px] shrink-0" strokeWidth={1.75} />
-          )}
+          )}n
           {collapsed ? null : <span>{theme === "dark" ? "Tema claro" : "Tema escuro"}</span>}
         </button>
         <button
-          type="button"
-          onClick={() => { logout(); toast.success("Sessão encerrada."); }}
-          title="Sair da conta"
-          className={cn(
-            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
-            collapsed && "justify-center px-0",
-          )}
+            type="button"
+            onClick={handleLogout}
+            title="Sair da conta"
+            className={cn(
+                "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
+                collapsed && "justify-center px-0",
+            )}
         >
-          <LogOut className="size-[18px] shrink-0" strokeWidth={1.75} />
-          {collapsed ? null : <span>Sair da conta</span>}
+            <LogOut
+                className="size-[18px] shrink-0"
+                strokeWidth={1.75}
+            />
+
+            {collapsed ? null : (
+                <span>Sair da conta</span>
+            )}
         </button>
       </div>
     </div>

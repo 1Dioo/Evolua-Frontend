@@ -176,7 +176,20 @@ export function SettingsPage() {
           <Row icon={LogOut} title="Sair da conta" description="Encerrar a sessão neste dispositivo.">
             <button
               type="button"
-              onClick={() => { logout(); navigate({ to: "/login" }); }}
+              onClick={async () => {
+                try {
+                  await logout();
+
+                  toast.success("Sessão encerrada.");
+
+                  await navigate({
+                    to: "/login",
+                    replace: true,
+                  });
+                } catch {
+                  toast.error("Não foi possível encerrar a sessão.");
+                }
+              }}
               className="mt-3 rounded-xl border border-border px-4 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:border-destructive/50 hover:text-destructive sm:mt-0"
             >
               Sair

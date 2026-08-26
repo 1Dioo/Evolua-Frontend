@@ -1,9 +1,168 @@
-import type {Request,Response} from "express"; import {db} from "../config/database.js"; import {sql} from "drizzle-orm"; import {ok} from "../utils/api.js";
-export async function dashboard(req:Request,res:Response){const uid=Number(req.user!.sub);const [[u],[prog],[courses],[acts],[events],[certs],[notes]]=await Promise.all([
-db.execute(sql`SELECT nome FROM usuarios WHERE id=${uid}`),db.execute(sql`SELECT ROUND(COALESCE(AVG(percentual),0),2) progresso_geral, SUM(concluida=TRUE) aulas_concluidas FROM progresso_aulas WHERE usuario_id=${uid}`),
-db.execute(sql`SELECT c.id,c.titulo,c.slug,COUNT(a.id) total_aulas,SUM(CASE WHEN COALESCE(p.concluida,FALSE) THEN 1 ELSE 0 END) aulas_concluidas,ROUND(COALESCE(AVG(COALESCE(p.percentual,0)),0),2) progresso FROM cursos c JOIN modulos m ON m.curso_id=c.id JOIN aulas a ON a.modulo_id=m.id LEFT JOIN progresso_aulas p ON p.aula_id=a.id AND p.usuario_id=${uid} WHERE c.ativo=TRUE GROUP BY c.id`),
-db.execute(sql`SELECT a.id,a.titulo,a.prazo FROM atividades a LEFT JOIN entregas_atividades e ON e.atividade_id=a.id AND e.usuario_id=${uid} WHERE a.ativo=TRUE AND (e.id IS NULL OR e.status<>'concluida') ORDER BY a.prazo IS NULL,a.prazo LIMIT 10`),
-db.execute(sql`SELECT id,titulo,descricao,data_evento,horario,local FROM eventos WHERE ativo=TRUE AND data_evento>=CURRENT_DATE ORDER BY data_evento LIMIT 5`),
-db.execute(sql`SELECT id,curso_id,codigo,data_emissao,arquivo_url FROM certificados WHERE usuario_id=${uid} AND ativo=TRUE ORDER BY data_emissao DESC`),
-db.execute(sql`SELECT id,titulo,mensagem,tipo,lida,data_criacao FROM notificacoes WHERE usuario_id=${uid} AND lida=FALSE ORDER BY data_criacao DESC LIMIT 20`)
-]);return ok(res,{usuario:u[0],progresso:prog[0],cursos:courses,atividadesPendentes:acts,proximosEventos:events,certificados:certs,notificacoesNaoLidas:notes});}
+import type { Request, Response } from "express";
+import { sql } from "drizzle-orm";
+
+import { db } from "../config/database.js";
+import { ok } from "../utils/api.js";
+
+export async function dashboard(
+    req: Request,
+    res: Response,
+) {
+    const uid = Number(req.user!.sub);
+
+    const [
+        [users],
+        [progress],
+        [courses],
+        [activities],
+        [events],
+        [certificates],
+        [notifications],
+    ] = await Promise.all([
+        db.execute(
+            sql`
+                SELECT nome
+                FROM usuarios
+                WHERE id = ${uid}
+                LIMIT 1
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    ROUND(
+                        COALESCE(AVG(percentual), 0),
+                        2
+                    ) AS progresso_geral,
+                    SUM(
+                        concluida = TRUE
+                    ) AS aulas_concluidas
+                FROM progresso_aulas
+                WHERE usuario_id = ${uid}
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    c.id,
+                    c.titulo,
+                    c.slug,
+                    COUNT(a.id) AS total_aulas,
+                    SUM(
+                        CASE
+                            WHEN COALESCE(p.concluida, FALSE)
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS aulas_concluidas,
+                    ROUND(
+                        COALESCE(
+                            AVG(COALESCE(p.percentual, 0)),
+                            0
+                        ),
+                        2
+                    ) AS progresso
+                FROM cursos c
+                JOIN modulos m
+                    ON m.curso_id = c.id
+                JOIN aulas a
+                    ON a.modulo_id = m.id
+                LEFT JOIN progresso_aulas p
+                    ON p.aula_id = a.id
+                    AND p.usuario_id = ${uid}
+                WHERE c.ativo = TRUE
+                GROUP BY
+                    c.id,
+                    c.titulo,
+                    c.slug
+                ORDER BY c.id DESC
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    a.id,
+                    a.titulo,
+                    a.prazo
+                FROM atividades a
+                LEFT JOIN entregas_atividades e
+                    ON e.atividade_id = a.id
+                    AND e.usuario_id = ${uid}
+                WHERE a.ativo = TRUE
+                  AND (
+                      e.id IS NULL
+                      OR e.status <> 'concluida'
+                  )
+                ORDER BY
+                    a.prazo IS NULL,
+                    a.prazo
+                LIMIT 10
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    id,
+                    titulo,
+                    descricao,
+                    data_evento,
+                    horario,
+                    local
+                FROM eventos
+                WHERE ativo = TRUE
+                  AND data_evento >= CURRENT_DATE
+                ORDER BY data_evento
+                LIMIT 5
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    id,
+                    curso_id,
+                    codigo,
+                    data_emissao,
+                    arquivo_url
+                FROM certificados
+                WHERE usuario_id = ${uid}
+                  AND ativo = TRUE
+                ORDER BY data_emissao DESC
+            `,
+        ),
+
+        db.execute(
+            sql`
+                SELECT
+                    id,
+                    titulo,
+                    mensagem,
+                    tipo,
+                    lida,
+                    data_criacao
+                FROM notificacoes
+                WHERE usuario_id = ${uid}
+                  AND lida = FALSE
+                ORDER BY data_criacao DESC
+                LIMIT 20
+            `,
+        ),
+    ]);
+
+    return ok(res, {
+        usuario: (users as any[])[0] ?? null,
+        progresso: (progress as any[])[0] ?? {
+            progresso_geral: 0,
+            aulas_concluidas: 0,
+        },
+        cursos: courses,
+        atividadesPendentes: activities,
+        proximosEventos: events,
+        certificados: certificates,
+        notificacoesNaoLidas: notifications,
+    });
+}

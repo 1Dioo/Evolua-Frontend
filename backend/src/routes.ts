@@ -6,6 +6,7 @@ import * as progress from "./controllers/progressController.js";
 import * as simple from "./controllers/simpleController.js";
 import { authMiddleware, requireRole } from "./middlewares/authMiddleware.js";
 
+
 export const router = Router();
 
 router.post("/auth/register", register);

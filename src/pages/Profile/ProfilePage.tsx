@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { Panel, SectionTitle } from "@/components/ui-kit";
 import { useProfile } from "@/lib/profile";
 
-
 const fieldClass =
   "w-full rounded-xl border border-input bg-surface-2/60 px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary/60";
 
@@ -42,12 +41,18 @@ export function ProfilePage() {
 
   const pickAvatar = (file?: File | null) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      updateProfile({ avatar: String(reader.result) });
-      toast.success("Foto de perfil atualizada.");
-    };
-    reader.readAsDataURL(file);
+
+    const maxSize = 2 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+        toast.error("A imagem deve ter no máximo 2 MB.");
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        toast.error("Selecione uma imagem válida.");
+        return;
+    }
   };
 
   return (
@@ -211,7 +216,9 @@ export function ProfilePage() {
                     </button>
                   ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">PNG ou JPG, até 2 MB.</p>
+                <p className="text-xs text-muted-foreground">
+                  PNG ou JPG, até 2 MB.
+                </p>
               </div>
             </Panel>
           </div>

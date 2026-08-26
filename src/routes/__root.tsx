@@ -4,11 +4,12 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useNavigate,
   HeadContent,
   Scripts,
   useLocation,
 } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { ThemeProvider, themeInitScript } from "../lib/theme";
@@ -166,11 +167,31 @@ function RootComponent() {
 
 function RootContent() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { authenticated } = useAuth();
-  const publicRoute = location.pathname === "/login" || location.pathname === "/cadastro";
 
-  if (publicRoute || !authenticated) {
+  const publicRoute =
+    location.pathname === "/login" ||
+    location.pathname === "/cadastro";
+
+  useEffect(() => {
+    if (!authenticated && !publicRoute) {
+      void navigate({
+        to: "/login",
+        replace: true,
+      });
+    }
+  }, [authenticated, publicRoute, navigate]);
+
+  // Se estiver em uma página pública, renderiza normalmente.
+  if (publicRoute) {
     return <Outlet />;
+  }
+
+  // Enquanto o redirecionamento para /login acontece,
+  // não deixa a página privada continuar aparecendo.
+  if (!authenticated) {
+    return null;
   }
 
   return (
@@ -178,5 +199,5 @@ function RootContent() {
       <Outlet />
     </AppLayout>
   );
-}
+} 
 

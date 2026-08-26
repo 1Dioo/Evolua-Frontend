@@ -7,11 +7,13 @@ import type { Course, Lesson, Module } from "@/types";
  */
 
 type LessonSeed = {
-  title: string;
-  description: string;
-  content: string;
-  duration: number;
-  status: Lesson["status"];
+    title: string;
+    description: string;
+    content: string;
+    duration: number;
+    status: Lesson["status"];
+    videoUrl?: string | null; // Alteração aqui !!
+    thumbnailUrl?: string | null; // Alteração aqui !!
 };
 
 type ModuleSeed = { title: string; lessons: LessonSeed[] };
@@ -37,7 +39,13 @@ const courseSeeds: CourseSeed[] = [
       {
         title: "Introdução à Informática",
         lessons: [
-          { title: "O que é um computador", description: "Conceitos iniciais e tipos de computador.", content: lorem, duration: 8, status: "concluida" },
+          { title: "O que é um computador",
+            description: "Conceitos iniciais e tipos de computador.",
+            content: lorem,
+            duration: 8,
+            status: "concluida",
+            videoUrl: "https://www.youtube.com/embed/o00f-GlCgqA", // Video de teste
+          },
           { title: "Ligando e desligando com segurança", description: "Boas práticas no uso do equipamento.", content: lorem, duration: 6, status: "concluida" },
         ],
       },
@@ -203,8 +211,8 @@ function buildModules(seed: CourseSeed): Module[] {
           title: lesson.title,
           description: lesson.description,
           content: lesson.content,
-          videoUrl: null,
-          thumbnailUrl: null,
+          videoUrl: lesson.videoUrl ?? null,
+          thumbnailUrl: lesson.thumbnailUrl ?? null, // Alteração aqui
           duration: lesson.duration,
           order: lessonIndex + 1,
           status: lesson.status,
