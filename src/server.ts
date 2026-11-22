@@ -1,21 +1,7 @@
-type ServerEntry = {
-  fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
-};
+import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 
-let serverEntryPromise: Promise<ServerEntry> | undefined;
-
-async function getServerEntry(): Promise<ServerEntry> {
-  if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (module) => (module.default ?? module) as ServerEntry,
-    );
-  }
-  return serverEntryPromise;
-}
-
-export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
-    const handler = await getServerEntry();
-    return handler.fetch(request, env, ctx);
+export default createServerEntry({
+  fetch(request) {
+    return handler.fetch(request);
   },
-};
+});
